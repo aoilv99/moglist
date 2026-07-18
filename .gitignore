@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node / Electron / Vite
+node_modules/
+out/
+dist/
+dist-electron/
+release/
+*.local
+.vite/
+*.tsbuildinfo
+
