@@ -1,8 +1,28 @@
+/**
+ * このファイルは何をするファイルか:
+ * モックAPI用の「画像解析結果」サンプルデータを、仕様書で求められている
+ * 8つのシナリオ(①正常〜⑧API全体失敗)ぶん定義するファイルです。
+ * `stores/mockSettingsStore.ts` の `mockAnalysisCase` で選ばれたシナリオに応じて、
+ * `mocks/handlers/assignmentAnalysisHandlers.ts` がこのデータを返します。
+ *
+ * このファイルの中でやっていること:
+ * - `fullConfidence`: 「全項目が高精度」という、よく使う精度パターンをまとめておく
+ * - `buildAnalysis`: 解析結果オブジェクトの共通部分(id・状態・画像URL等)を組み立てる
+ *   ヘルパー関数。個別のシナリオごとの差分(overrides)だけを渡せばよい
+ * - ①〜⑥の各シナリオ(成功/日付曖昧/複数候補/課題名不明/重複あり/OCR失敗)を、
+ *   それぞれ具体的なサンプルデータとして定義する
+ * - `MOCK_ANALYSES`: シナリオのキー(英語)と、対応するサンプルデータの対応表。
+ *   ⑦カレンダー連携失敗は解析結果自体は「成功」データを使い回し(taskHandlers.ts側で
+ *   カレンダー連携だけ失敗させる)、⑧API全体失敗はここには含めない
+ *   (handlers側でエラーを直接投げるため)
+ */
+
 import type { AssignmentAnalysis, AssignmentAnalysisResult } from '@shared/types/api'
 import type { MockAnalysisCase } from '@renderer/stores/mockSettingsStore'
 import { deadlineAt, nowIso } from './dateHelpers'
 import { buildPlaceholderScreenshotDataUrl } from './placeholderImage'
 
+// 「すべての項目が高精度」という、よく使う組み合わせを1つの定数にしておく
 const fullConfidence: AssignmentAnalysisResult['fieldConfidence'] = {
   title: 'high',
   subject: 'high',
@@ -11,6 +31,7 @@ const fullConfidence: AssignmentAnalysisResult['fieldConfidence'] = {
   description: 'high'
 }
 
+/** 解析結果オブジェクトの共通部分を組み立て、シナリオごとの差分だけ上書きできるようにする */
 function buildAnalysis(
   id: string,
   overrides: Partial<AssignmentAnalysis> = {}
@@ -151,6 +172,8 @@ const ocrFailed: AssignmentAnalysis = buildAnalysis('mock-analysis-ocr-failed', 
   }
 })
 
+// シナリオキーとサンプルデータの対応表。'api_failure'はここに含めず、
+// 呼び出し側(assignmentAnalysisHandlers.ts)で直接エラーを投げる形にしている
 export const MOCK_ANALYSES: Record<Exclude<MockAnalysisCase, 'api_failure'>, AssignmentAnalysis> =
   {
     success,

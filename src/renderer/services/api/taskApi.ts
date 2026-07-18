@@ -1,3 +1,19 @@
+/**
+ * このファイルは何をするファイルか:
+ * 課題(Task)に関するAPI呼び出し関数(作成・一覧取得・詳細取得・更新・削除・状態変更)を
+ * まとめたファイルです。関数ごとに、モックAPIを使うか実APIを使うかを切り替えています。
+ *
+ * このファイルの中でやっていること:
+ * - `createTask`: 課題を新規登録する(POST /tasks)
+ * - `getTasks`: 課題一覧を取得する(GET /tasks、フィルタ・並び替え・検索条件を渡せる)
+ * - `getTask`: 課題を1件取得する(GET /tasks/:taskId)
+ * - `updateTask`: 課題の内容を更新する(PATCH /tasks/:taskId)
+ * - `deleteTask`: 課題を削除する(DELETE /tasks/:taskId)
+ * - `updateTaskStatus`: 完了/未完了の状態だけを変更する(PATCH /tasks/:taskId/status)
+ * - どの関数も、モックモードなら対応するモックハンドラを呼び、実APIモードなら
+ *   axiosで通信してエラーを共通形式に変換する、という同じパターンを繰り返している
+ */
+
 import type {
   CreateTaskInput,
   Task,

@@ -1,7 +1,23 @@
+/**
+ * このファイルは何をするファイルか:
+ * モックAPIが最初から表示する「初期の課題データ」5件分を定義するファイルです。
+ * ダッシュボード・課題一覧をモックモードで開いた時に、最初から何かデータが
+ * 見えるようにするためのサンプルです(空っぽの状態を避けるため)。
+ *
+ * このファイルの中でやっていること:
+ * - `buildTask`: 課題データの「よく使う既定値」(未完了・カレンダー連携済み等)を
+ *   あらかじめ設定しておき、個別の課題ごとの差分(overrides)だけを渡せば
+ *   1件のTaskオブジェクトが作れるようにするヘルパー関数
+ * - `INITIAL_MOCK_TASKS`: 実際に使う5件の初期データ
+ *   - 今日締切・数日後締切・期限切れ・カレンダー連携失敗・完了済み、など
+ *     さまざまなパターンを1つずつ含めることで、画面の見た目を確認しやすくしている
+ */
+
 import type { Task } from '@shared/types/api'
 import { deadlineAt, nowIso } from './dateHelpers'
 import { buildPlaceholderScreenshotDataUrl } from './placeholderImage'
 
+/** 課題データのよくある既定値を埋めつつ、個別の差分だけを上書きして1件作るヘルパー */
 function buildTask(overrides: Partial<Task> & Pick<Task, 'id' | 'title' | 'deadline'>): Task {
   const now = nowIso()
   return {
@@ -20,6 +36,7 @@ function buildTask(overrides: Partial<Task> & Pick<Task, 'id' | 'title' | 'deadl
 }
 
 export const INITIAL_MOCK_TASKS: Task[] = [
+  // 今日が締切の課題
   buildTask({
     id: 'mock-task-1',
     title: '線形代数 演習プリント提出',
@@ -30,6 +47,7 @@ export const INITIAL_MOCK_TASKS: Task[] = [
     confidence: 'high',
     sourceImageUrl: buildPlaceholderScreenshotDataUrl('線形代数 演習プリント')
   }),
+  // 数日後が締切の課題
   buildTask({
     id: 'mock-task-2',
     title: 'データ構造とアルゴリズム 第5回レポート',
@@ -40,6 +58,7 @@ export const INITIAL_MOCK_TASKS: Task[] = [
     confidence: 'high',
     sourceImageUrl: buildPlaceholderScreenshotDataUrl('アルゴリズム第5回レポート')
   }),
+  // カレンダー連携に失敗しているケース
   buildTask({
     id: 'mock-task-3',
     title: '英語プレゼンテーション課題',
@@ -55,6 +74,7 @@ export const INITIAL_MOCK_TASKS: Task[] = [
       }
     }
   }),
+  // 締切を過ぎている(期限切れ)課題
   buildTask({
     id: 'mock-task-4',
     title: '基礎化学 実験レポート',
@@ -63,6 +83,7 @@ export const INITIAL_MOCK_TASKS: Task[] = [
     submissionMethod: '実験レポート用紙を提出',
     confidence: 'low'
   }),
+  // 完了済みの課題
   buildTask({
     id: 'mock-task-5',
     title: '経済学基礎 期末課題',

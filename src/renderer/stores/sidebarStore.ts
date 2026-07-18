@@ -1,3 +1,13 @@
+/**
+ * このファイルは何をするファイルか:
+ * メインウィンドウのサイドバーが「開いているか閉じているか」をZustandで管理するストアです。
+ *
+ * このファイルの中でやっていること:
+ * - `isOpen`: サイドバーの開閉状態(既定は開いた状態)
+ * - `toggle`: 開閉状態を反転させる
+ * - `setOpen`: 開閉状態を直接指定する
+ */
+
 import { create } from 'zustand'
 
 interface SidebarStoreState {

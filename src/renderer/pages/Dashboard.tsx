@@ -1,3 +1,17 @@
+/**
+ * このファイルは何をするファイルか:
+ * メインウィンドウの最初の画面「ダッシュボード」(ルート `/`)を表示するページコンポーネントです。
+ * 今日/今週締切・期限切れ・最近登録した課題を、それぞれセクションごとに一覧表示します。
+ *
+ * このファイルの中でやっていること:
+ * - `Section`: 見出し+中身、という小さな共通レイアウトを作るための内部コンポーネント
+ * - `useTasks` を4パターンの条件(今日/今週/期限切れ/最近登録)で呼び出し、
+ *   それぞれ別々のセクションとして表示する
+ * - `useHealth` でAPI接続状態を取得し、上部にステータスバッジを表示する
+ * - 「スクショして食べさせよう」という操作案内カードを上部に表示する
+ * - 各セクションは、読み込み中/データあり/データなしの3状態を出し分ける
+ */
+
 import { Camera, Wifi, WifiOff } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -8,6 +22,7 @@ import { useHealth } from '@renderer/hooks/useHealth'
 import { useTasks } from '@renderer/hooks/useTasks'
 import { USE_MOCK_API } from '@renderer/services/api/client'
 
+/** 見出し付きのセクションを作る、ダッシュボード内だけで使う小さな共通コンポーネント */
 function Section({ title, children }: { title: string; children: ReactNode }): JSX.Element {
   return (
     <section className="space-y-2">
@@ -18,6 +33,7 @@ function Section({ title, children }: { title: string; children: ReactNode }): J
 }
 
 export function Dashboard(): JSX.Element {
+  // それぞれ異なる条件で課題一覧を取得する(4つの独立したクエリ)
   const todayQuery = useTasks({ filter: 'today', sort: 'deadlineAsc' })
   const thisWeekQuery = useTasks({ filter: 'thisWeek', sort: 'deadlineAsc' })
   const overdueQuery = useTasks({ filter: 'overdue', sort: 'deadlineAsc' })
@@ -27,6 +43,7 @@ export function Dashboard(): JSX.Element {
 
   return (
     <div className="space-y-8">
+      {/* 操作方法を案内するカード */}
       <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
         <div className="flex items-center gap-3">
           <Camera className="h-6 w-6 shrink-0 text-primary" />
@@ -41,6 +58,7 @@ export function Dashboard(): JSX.Element {
         </div>
       </div>
 
+      {/* モックモード表示とAPI接続状態のバッジ */}
       <div className="flex flex-wrap gap-3 text-xs">
         {USE_MOCK_API && (
           <span className="rounded-full bg-warning/10 px-3 py-1 font-medium text-warning">
@@ -57,6 +75,7 @@ export function Dashboard(): JSX.Element {
         </span>
       </div>
 
+      {/* 各セクションは「読み込み中」「データあり」「データなし(空状態)」の3パターンを出し分ける */}
       <Section title="今日締切の課題">
         {todayQuery.isLoading ? (
           <LoadingState label="読み込み中…" />

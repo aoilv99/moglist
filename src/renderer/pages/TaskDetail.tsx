@@ -1,3 +1,20 @@
+/**
+ * このファイルは何をするファイルか:
+ * 課題詳細画面(ルート `/tasks/:taskId`)を表示するページコンポーネントです。
+ * 課題情報の表示、編集、完了/未完了の切り替え、削除の機能をまとめています。
+ *
+ * このファイルの中でやっていること:
+ * - URLパラメータ(taskId)から `useTask()` で課題詳細を取得する
+ * - `isEditing` フラグで、「表示モード」と「編集フォームモード」を切り替える
+ * - 編集フォームには React Hook Form + Zod を使い、課題作成フォームと同じ
+ *   バリデーションルール(taskFormSchema)を再利用する
+ * - 「完了にする/未完了に戻す」ボタンで状態を切り替える
+ * - 「削除」ボタンは確認ダイアログ(ConfirmDialog)を挟んでから実行する
+ * - 各操作の成功/失敗を、トースト通知(showToast)でユーザーに知らせる
+ * - 元画像・登録日時・更新日時・カレンダー連携状態・AI解析精度も表示する
+ * - `DetailRow`: ラベル+値、という表示形式をまとめるための内部コンポーネント
+ */
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format, parseISO } from 'date-fns'
 import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react'
@@ -15,6 +32,7 @@ import { useDeleteTask, useUpdateTask, useUpdateTaskStatus } from '@renderer/hoo
 import { combineDeadline, splitDeadline } from '@renderer/lib/deadline'
 import { taskFormSchema, type TaskFormValues } from '@renderer/schemas/taskForm'
 
+// 入力欄に共通で使うTailwindクラス
 const inputClass =
   'w-full rounded-xl border border-secondary/50 bg-surface px-3 py-2 text-sm text-text-base focus:border-primary focus:outline-none'
 
@@ -26,7 +44,9 @@ export function TaskDetail(): JSX.Element {
   const updateTaskMutation = useUpdateTask(taskId ?? '')
   const deleteTaskMutation = useDeleteTask()
   const updateStatusMutation = useUpdateTaskStatus()
+  // 表示モードか編集モードかを切り替えるフラグ
   const [isEditing, setIsEditing] = useState(false)
+  // 削除確認ダイアログの表示フラグ
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   const {
@@ -46,6 +66,7 @@ export function TaskDetail(): JSX.Element {
     }
   })
 
+  // 読み込み中/エラー時は、詳細本体を描画せず早期リターンする
   if (isLoading) return <LoadingState label="課題を読み込み中…" />
   if (isError || !task) {
     return (
@@ -58,6 +79,7 @@ export function TaskDetail(): JSX.Element {
     )
   }
 
+  // 「編集」ボタンが押された時、現在の課題データをフォームの初期値として詰め直す
   const startEditing = (): void => {
     const { date, time } = splitDeadline(task.deadline)
     reset({
@@ -71,6 +93,7 @@ export function TaskDetail(): JSX.Element {
     setIsEditing(true)
   }
 
+  // フォーム送信(保存)時の処理
   const handleSave = (values: TaskFormValues): void => {
     updateTaskMutation.mutate(
       {
@@ -90,6 +113,7 @@ export function TaskDetail(): JSX.Element {
     )
   }
 
+  // 完了/未完了を反転させて更新する
   const handleToggleStatus = (): void => {
     updateStatusMutation.mutate({
       taskId: task.id,
@@ -97,11 +121,13 @@ export function TaskDetail(): JSX.Element {
     })
   }
 
+  // 削除確認ダイアログで「削除する」が押された時の処理
   const handleDelete = (): void => {
     setConfirmDeleteOpen(false)
     deleteTaskMutation.mutate(task.id, {
       onSuccess: () => {
         showToast('課題を削除しました。', 'success')
+        // 削除後は詳細画面に留まれないため、一覧画面へ戻す
         navigate('/tasks')
       },
       onError: () => showToast('削除に失敗しました。もう一度お試しください。', 'error')
@@ -147,6 +173,7 @@ export function TaskDetail(): JSX.Element {
         </div>
       </div>
 
+      {/* 編集モードなら入力フォームを、そうでなければ表示専用のカードを出す */}
       {isEditing ? (
         <form
           onSubmit={handleSubmit(handleSave)}
@@ -217,6 +244,7 @@ export function TaskDetail(): JSX.Element {
         </div>
       )}
 
+      {/* 元画像がある場合だけプレビューを表示する */}
       {task.sourceImageUrl && (
         <div>
           <p className="mb-1.5 text-sm font-medium text-text-base">元画像</p>
@@ -228,6 +256,7 @@ export function TaskDetail(): JSX.Element {
         </div>
       )}
 
+      {/* 登録/更新日時、カレンダー連携状態、AI解析精度を2列で表示する */}
       <div className="grid grid-cols-2 gap-4 rounded-2xl border border-secondary/30 bg-surface p-5 text-sm">
         <div>
           <p className="text-muted">登録日時</p>
@@ -246,6 +275,7 @@ export function TaskDetail(): JSX.Element {
           {task.confidence ? (
             <ConfidenceIndicator level={task.confidence} />
           ) : (
+            // AI解析を経由せず手動登録された課題は精度情報が無いため、その旨を表示する
             <span className="text-xs text-muted">手動登録（AI解析なし）</span>
           )}
         </div>
@@ -262,6 +292,7 @@ export function TaskDetail(): JSX.Element {
   )
 }
 
+/** 「ラベル+値」の1行分の表示を作る、このファイル専用の小さな内部コンポーネント */
 function DetailRow({
   label,
   value,

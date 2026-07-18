@@ -1,3 +1,12 @@
+/**
+ * このファイルは何をするファイルか:
+ * モックモード時に、ヘルスチェックAPIの応答を返すハンドラを定義するファイルです。
+ *
+ * このファイルの中でやっていること:
+ * - `mockGetHealth`: 150ミリ秒待ってから、「正常(ok)・モックモード」という
+ *   固定の応答を返す
+ */
+
 import type { ApiHealth } from '@shared/types/api'
 
 export async function mockGetHealth(): Promise<ApiHealth> {

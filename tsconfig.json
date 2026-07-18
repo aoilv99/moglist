@@ -1,3 +1,7 @@
+// このファイルは何をするファイルか:
+// TypeScriptの「入り口」となる設定ファイルです。中身は空で、実際の設定は
+// tsconfig.node.json(Electron main/preload用)とtsconfig.web.json(renderer用)に
+// 分かれています。エディタ(VSCode等)がプロジェクトを認識するための参照先を示します。
 {
   "files": [],
   "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]

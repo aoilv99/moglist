@@ -1,3 +1,9 @@
+<!--
+  このファイルは何をするファイルか:
+  メインウィンドウ(課題一覧・ダッシュボード等を表示するウィンドウ)の
+  一番土台となるHTMLファイルです。中身はほぼ空で、実際の画面はReact(app/main.tsx)が
+  #root要素の中に描画します。
+-->
 <!doctype html>
 <html lang="ja">
   <head>
@@ -7,6 +13,7 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- ここから先はReactアプリ(app/main.tsx)が描画を担当する -->
     <script type="module" src="./app/main.tsx"></script>
   </body>
 </html>

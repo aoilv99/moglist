@@ -1,7 +1,19 @@
+/**
+ * このファイルは何をするファイルか:
+ * `mapAnalysisToFormValues.ts` の `mapAnalysisResultToFormValues` が
+ * 正しく動くかを確認する単体テストファイルです。
+ *
+ * このファイルの中でやっていること:
+ * - 全項目が揃った解析結果を、正しくフォーム値に変換できることを確認する
+ * - 各項目がnull(未検出)の場合、空文字列にフォールバックすることを確認する
+ * - 解析結果自体がnullの場合、既定の初期値(締切時刻23:59)が返ることを確認する
+ */
+
 import { describe, expect, it } from 'vitest'
 import type { AssignmentAnalysisResult } from '@shared/types/api'
 import { mapAnalysisResultToFormValues } from './mapAnalysisToFormValues'
 
+// テストで使い回す、標準的な解析結果のサンプルデータ
 const baseResult: AssignmentAnalysisResult = {
   title: 'レポート課題',
   subject: '情報科学',

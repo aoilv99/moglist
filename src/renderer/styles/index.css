@@ -1,3 +1,14 @@
+/*
+ * このファイルは何をするファイルか:
+ * アプリ全体(3つのウィンドウすべて)で読み込まれる、共通のベーススタイルです。
+ *
+ * このファイルの中でやっていること:
+ * - Tailwind CSSの3層(base/components/utilities)を読み込む
+ * - html/body/#rootの高さを100%にし、画面いっぱいにレイアウトできるようにする
+ * - bodyの既定の余白(margin)を消し、文字色を指定する
+ * - 背景を透明にする(マスコット/オーバーレイウィンドウの透過表示に必要な設定)
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
