@@ -6,7 +6,7 @@
  * - 「ダッシュボード」「課題一覧」への遷移リンクを一覧表示する
  * - 現在表示中のページに対応するリンクをハイライトする(NavLinkのisActiveを利用)
  * - サイドバーの開閉(幅を広げる/狭める)をZustandストアで管理し、ボタンで切り替える
- * - 「設定(準備中)」を、クリックできない状態で表示しておく(未実装機能の案内)
+ * - 下部に「設定」への遷移リンクを表示する(Gemini APIキーの登録画面)
  */
 
 import { LayoutDashboard, ListTodo, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react'
@@ -57,11 +57,17 @@ export function Sidebar(): JSX.Element {
         ))}
       </nav>
       <div className="border-t border-secondary/30 px-2 py-3">
-        {/* 設定画面は未実装のため、クリックできない見た目(cursor-not-allowed)で案内だけしておく */}
-        <div className="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted/50">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+              isActive ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-background'
+            }`
+          }
+        >
           <Settings className="h-5 w-5 shrink-0" />
-          {isOpen && <span>設定（準備中）</span>}
-        </div>
+          {isOpen && <span>設定</span>}
+        </NavLink>
       </div>
     </aside>
   )

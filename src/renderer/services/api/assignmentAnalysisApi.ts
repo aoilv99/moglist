@@ -1,56 +1,59 @@
 /**
  * このファイルは何をするファイルか:
  * 画像のAI解析に関するAPI呼び出し関数(analyzeAssignmentImage / retryAnalysis)を
- * まとめたファイルです。「バックエンドと実際に通信するか、モックを使うか」を
+ * まとめたファイルです。「モックを使うか、Geminiを直接呼び出すか」を
  * ここで切り替えており、画面側のコードはこの切り替えを意識しなくて済みます。
  *
  * このファイルの中でやっていること:
- * - `analyzeAssignmentImage`: 画像ファイルを送って解析結果を得る
+ * - `analyzeAssignmentImage`: 画像ファイルを渡して解析結果を得る
  *   - モックモード(`USE_MOCK_API`)なら、モックハンドラ関数を呼ぶだけ
- *   - 実APIモードなら、画像をmultipart/form-data形式でPOSTし、結果を受け取る
+ *   - 実APIモードなら、画像バイト列をElectronのmainプロセスへIPCで渡し、
+ *     mainプロセスがGemini APIを直接呼び出した結果を受け取る(バックエンドサーバーは介さない)
  * - `retryAnalysis`: 既存の解析IDに対して再解析を依頼する
- * - どちらも、実API通信でエラーが起きたら `toApiError` で共通のエラー形式に変換して投げる
+ *   - Geminiモードでは元画像を保持していないため非対応とし、エラーを投げる
  */
 
-import type { AssignmentAnalysis } from '@shared/types/api'
-import { httpClient, USE_MOCK_API } from './client'
-import { toApiError } from './errors'
+import { ApiError, type AssignmentAnalysis } from '@shared/types/api'
+import { USE_MOCK_API } from './client'
 import { mockAnalyzeAssignmentImage, mockRetryAnalysis } from '@renderer/mocks/handlers/assignmentAnalysisHandlers'
 
+// Geminiに送れる画像サイズの上限(inlineDataとしてBase64化するため大きすぎると失敗しやすい)
+const MAX_IMAGE_BYTES = 15 * 1024 * 1024
+
 /**
- * POST /assignment-analyses (multipart/form-data, field name "image")
- * See BACKEND_HANDOFF.md for the full request/response contract.
- * (日本語訳: 画像ファイルを"image"というフィールド名でmultipart/form-data形式で送信する。
- *  リクエスト/レスポンスの詳しい仕様はBACKEND_HANDOFF.mdを参照)
+ * 画像をElectronのmainプロセスへ渡し、Gemini APIで直接解析させる。
+ * See BACKEND_HANDOFF.md for the AssignmentAnalysisResult shape this must match.
+ * (日本語訳: 画像をmainプロセスへ渡し、Gemini APIで直接解析させる。
+ *  結果の形はBACKEND_HANDOFF.mdで定義したAssignmentAnalysisResultに合わせる)
  */
 export async function analyzeAssignmentImage(file: File): Promise<AssignmentAnalysis> {
   // モックモードの場合は、実際の通信をせずモックデータを返す
   if (USE_MOCK_API) return mockAnalyzeAssignmentImage(file)
 
-  try {
-    // ブラウザ標準のFormDataを使い、画像をmultipart/form-data形式で送る準備をする
-    const formData = new FormData()
-    formData.append('image', file)
-    const { data } = await httpClient.post<AssignmentAnalysis>('/assignment-analyses', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    return data
-  } catch (error) {
-    // axios等のエラーを、アプリ共通のApiError形式に変換してから投げ直す
-    throw toApiError(error)
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new ApiError({ code: 'FILE_TOO_LARGE', message: '画像サイズが大きすぎます(15MBまで)。' })
   }
+
+  const data = await file.arrayBuffer()
+  const response = await window.mogulis.analyzeImageWithGemini({ data, mimeType: file.type })
+
+  const analysis: AssignmentAnalysis = {
+    id: crypto.randomUUID(),
+    status: response.status,
+    sourceImageUrl: URL.createObjectURL(file),
+    createdAt: new Date().toISOString(),
+    result: response.result,
+    error: response.error
+  }
+  return analysis
 }
 
-/** POST /assignment-analyses/:analysisId/retry */
+/** Geminiモードでは元画像を保持していないため非対応 */
 export async function retryAnalysis(analysisId: string): Promise<AssignmentAnalysis> {
   if (USE_MOCK_API) return mockRetryAnalysis(analysisId)
 
-  try {
-    const { data } = await httpClient.post<AssignmentAnalysis>(
-      `/assignment-analyses/${analysisId}/retry`
-    )
-    return data
-  } catch (error) {
-    throw toApiError(error)
-  }
+  throw new ApiError({
+    code: 'AI_ANALYSIS_FAILED',
+    message: 'もう一度解析するには、画像を再度スクショまたはドラッグ＆ドロップしてください。'
+  })
 }

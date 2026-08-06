@@ -8,6 +8,7 @@
  * - `tasks(query)`: 課題一覧のキャッシュキー(検索条件ごとに別々にキャッシュされる)
  * - `task(taskId)`: 課題詳細のキャッシュキー
  * - `health()`: ヘルスチェックのキャッシュキー
+ * - `geminiKeyStatus()`: Gemini APIキーの保存状態のキャッシュキー
  */
 
 import type { TaskListQuery } from '@shared/types/api'
@@ -15,5 +16,6 @@ import type { TaskListQuery } from '@shared/types/api'
 export const queryKeys = {
   tasks: (query: TaskListQuery = {}) => ['tasks', query] as const,
   task: (taskId: string) => ['tasks', 'detail', taskId] as const,
-  health: () => ['health'] as const
+  health: () => ['health'] as const,
+  geminiKeyStatus: () => ['geminiKeyStatus'] as const
 }

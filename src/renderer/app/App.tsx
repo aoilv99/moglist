@@ -20,6 +20,7 @@ import { ToastProvider } from '@renderer/components/feedback/ToastProvider'
 import { AnalysisReview } from '@renderer/pages/AnalysisReview'
 import { AnalyzingPage } from '@renderer/pages/AnalyzingPage'
 import { Dashboard } from '@renderer/pages/Dashboard'
+import { SettingsPage } from '@renderer/pages/SettingsPage'
 import { TaskDetail } from '@renderer/pages/TaskDetail'
 import { TaskListPage } from '@renderer/pages/TaskListPage'
 import { NavigateListener } from './NavigateListener'
@@ -46,6 +47,7 @@ export function App(): JSX.Element {
               <Route path="/tasks/:taskId" element={<TaskDetail />} />
               <Route path="/analyzing" element={<AnalyzingPage />} />
               <Route path="/review/:analysisId" element={<AnalysisReview />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </AppShell>
         </HashRouter>

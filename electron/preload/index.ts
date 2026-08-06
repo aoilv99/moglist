@@ -57,7 +57,17 @@ const api: MoguLisDesktopAPI = {
   showNotification: (input) => ipcRenderer.invoke('mogulis:show-notification', input),
   getAppVersion: () => ipcRenderer.invoke('mogulis:get-app-version'),
   // 画面の範囲選択スクリーンショットを実行する
-  captureScreenRegion: () => ipcRenderer.invoke('mogulis:capture-screen-region')
+  captureScreenRegion: () => ipcRenderer.invoke('mogulis:capture-screen-region'),
+  // Gemini APIキーが保存済みかどうかを取得する
+  getGeminiKeyStatus: () => ipcRenderer.invoke('mogulis:gemini-get-key-status'),
+  // Gemini APIキーを保存する
+  saveGeminiApiKey: (key) => ipcRenderer.invoke('mogulis:gemini-save-key', key),
+  // 保存済みのGemini APIキーを削除する
+  clearGeminiApiKey: () => ipcRenderer.invoke('mogulis:gemini-clear-key'),
+  // Gemini APIキーの接続テストを行う
+  testGeminiApiKey: (key) => ipcRenderer.invoke('mogulis:gemini-test-key', key),
+  // 画像をGeminiへ送って解析する
+  analyzeImageWithGemini: (input) => ipcRenderer.invoke('mogulis:gemini-analyze-image', input)
 }
 
 // 範囲選択オーバーレイウィンドウ専用の、小さな機能セット

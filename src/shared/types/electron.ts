@@ -16,6 +16,8 @@
  * - `declare global` で、TypeScript上で `window.mogulis` にアクセスできるようにする
  */
 
+import type { GeminiAnalyzeImageResponse, GeminiKeyStatus, GeminiKeyTestResult } from './gemini'
+
 // スクリーンショット撮影結果(保存先ファイルパスとURL)の型
 export interface ScreenCaptureResult {
   /** file:// URL of the captured (and cropped) PNG image */
@@ -83,6 +85,21 @@ export interface MoguLisDesktopAPI {
    *  画像情報を返す。キャンセルされた場合はnullを返す)
    */
   captureScreenRegion(): Promise<ScreenCaptureResult | null>
+  /** Whether a Gemini API key is currently saved (does not return the key itself). */
+  // (Gemini APIキーが保存済みかどうかを返す。キーの値そのものは返さない)
+  getGeminiKeyStatus(): Promise<GeminiKeyStatus>
+  /** Encrypts and saves the given Gemini API key via safeStorage. */
+  // (渡されたGemini APIキーをsafeStorageで暗号化して保存する)
+  saveGeminiApiKey(key: string): Promise<void>
+  /** Deletes the saved Gemini API key, if any. */
+  // (保存済みのGemini APIキーを削除する)
+  clearGeminiApiKey(): Promise<void>
+  /** Sends a minimal request to Gemini to verify the given key works. */
+  // (渡されたキーが有効かどうか、Gemini APIへ小さなリクエストを送って確認する)
+  testGeminiApiKey(key: string): Promise<GeminiKeyTestResult>
+  /** Sends image bytes to Gemini and returns the assignment analysis result. */
+  // (画像の生バイト列をGemini APIへ送り、課題の解析結果を返す)
+  analyzeImageWithGemini(input: { data: ArrayBuffer; mimeType: string }): Promise<GeminiAnalyzeImageResponse>
 }
 
 // 範囲選択で選ばれた矩形領域(左上座標+幅+高さ)の型

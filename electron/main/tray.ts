@@ -11,6 +11,7 @@
 
 import { Menu, Tray, app, nativeImage } from 'electron'
 import path from 'node:path'
+import { openMainWindowAtRoute } from './ipc'
 import { createMainWindow, setQuitting } from './windows'
 
 // トレイは1つだけ作れば十分なので、モジュール外側の変数に保持しておく
@@ -46,6 +47,10 @@ export function createTray(): Tray {
     {
       label: '管理画面を開く',
       click: () => createMainWindow()
+    },
+    {
+      label: '設定を開く',
+      click: () => openMainWindowAtRoute('/settings')
     },
     { type: 'separator' },
     {

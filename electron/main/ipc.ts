@@ -21,6 +21,8 @@ import { app, desktopCapturer, ipcMain, Notification, screen } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { PendingImagePayload, ScreenCaptureResult } from '@shared/types/electron'
+import { analyzeImageWithGemini, testApiKey } from './geminiClient'
+import { clearApiKey, getApiKey, hasApiKey, saveApiKey } from './geminiKeyStore'
 import {
   createMainWindow,
   createMascotWindow,
@@ -51,6 +53,11 @@ function toFileUrl(filePath: string): string {
   return `file://${filePath.replace(/\\/g, '/')}`
 }
 
+/** メインウィンドウを開いて、指定したルートへ移動させる(トレイメニューからも呼べるよう独立させている) */
+export function openMainWindowAtRoute(route: string): void {
+  sendToMainWindowWhenReady('mogulis:navigate', route)
+}
+
 /** アプリ起動時に一度だけ呼び出し、preloadから使えるすべてのIPCハンドラを登録する */
 export function registerIpcHandlers(): void {
   // メインウィンドウを開く(既存のルートのまま表示するだけ)
@@ -60,7 +67,7 @@ export function registerIpcHandlers(): void {
 
   // メインウィンドウを開いて、指定したルート(例: "/tasks")へ移動させる
   ipcMain.handle('mogulis:open-main-window-at-route', async (_event, route: string) => {
-    sendToMainWindowWhenReady('mogulis:navigate', route)
+    openMainWindowAtRoute(route)
   })
 
   // 既にファイルとして保存済みのスクリーンショット画像を、メインウィンドウへ引き渡す
@@ -143,6 +150,31 @@ export function registerIpcHandlers(): void {
     // Node.jsのBufferをブラウザ側で扱えるArrayBufferへ変換して返す
     return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
   })
+
+  // Gemini APIキーが保存済みかどうかを返す(キーの値自体は返さない)
+  ipcMain.handle('mogulis:gemini-get-key-status', async () => ({ configured: await hasApiKey() }))
+
+  // Gemini APIキーを暗号化して保存する
+  ipcMain.handle('mogulis:gemini-save-key', async (_event, key: string) => {
+    await saveApiKey(key)
+  })
+
+  // 保存済みのGemini APIキーを削除する
+  ipcMain.handle('mogulis:gemini-clear-key', async () => {
+    await clearApiKey()
+  })
+
+  // 渡されたキーが有効かどうかをGemini APIへ小さなリクエストを送って確認する
+  ipcMain.handle('mogulis:gemini-test-key', async (_event, key: string) => testApiKey(key))
+
+  // 画像をGeminiへ送って解析し、AssignmentAnalysisResult相当の結果を返す
+  ipcMain.handle(
+    'mogulis:gemini-analyze-image',
+    async (_event, input: { data: ArrayBuffer; mimeType: string }) => {
+      const apiKey = await getApiKey()
+      return analyzeImageWithGemini(apiKey, input)
+    }
+  )
 }
 
 /**
