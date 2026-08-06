@@ -1,0 +1,18 @@
+<!--
+  このファイルは何をするファイルか:
+  デスクトップに常駐する「もぐた」ウィンドウの土台となるHTMLファイルです。
+  実際の見た目・挙動はReact(mascotApp/main.tsx)が#root要素の中に描画します。
+-->
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoguLis - もぐた</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- ここから先はReactアプリ(mascotApp/main.tsx)が描画を担当する -->
+    <script type="module" src="./mascotApp/main.tsx"></script>
+  </body>
+</html>

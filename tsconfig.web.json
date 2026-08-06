@@ -1,0 +1,33 @@
+// このファイルは何をするファイルか:
+// レンダラー側(React/ブラウザで動くコード)向けのTypeScript設定です。
+// `npx tsc --noEmit -p tsconfig.web.json` で型チェックに使われます。
+{
+  // 型チェックの対象(renderer配下のts/tsxファイルと、共有型定義)
+  "include": [
+    "src/renderer/**/*.ts",
+    "src/renderer/**/*.tsx",
+    "src/shared/**/*"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    // ブラウザ環境のAPI(DOM)を使えるようにする(main側のtsconfigとの違い)
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    // .tsxファイル内でJSX記法(<div>等)を使えるようにする
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    // "@renderer/xxx" "@shared/xxx" というインポートを解決するための別名設定
+    "paths": {
+      "@renderer/*": ["src/renderer/*"],
+      "@shared/*": ["src/shared/*"]
+    },
+    "noEmit": true
+  }
+}
